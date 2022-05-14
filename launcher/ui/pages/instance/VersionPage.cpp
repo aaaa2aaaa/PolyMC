@@ -246,6 +246,9 @@ void VersionPage::updateVersionControls()
     bool supportsQuilt = minecraftVersion >= Version("1.14");
     ui->actionInstall_Quilt->setEnabled(controlsEnabled && supportsQuilt);
 
+    bool supportsLegacyFabric = minecraftVersion <= Version("1.13.2");
+    ui->actionInstall_LegacyFabric->setEnabled(controlsEnabled && supportsLegacyFabric);
+
     bool supportsLiteLoader = minecraftVersion <= Version("1.12.2");
     ui->actionInstall_LiteLoader->setEnabled(controlsEnabled && supportsLiteLoader);
 
@@ -484,6 +487,33 @@ void VersionPage::on_actionInstall_Fabric_triggered()
     VersionSelectDialog vselect(vlist.get(), tr("Select Fabric Loader version"), this);
     vselect.setEmptyString(tr("No Fabric Loader versions are currently available."));
     vselect.setEmptyErrorString(tr("Couldn't load or download the Fabric Loader version lists!"));
+
+    auto currentVersion = m_profile->getComponentVersion("net.fabricmc.fabric-loader");
+    if(!currentVersion.isEmpty())
+    {
+        vselect.setCurrentVersion(currentVersion);
+    }
+
+    if (vselect.exec() && vselect.selectedVersion())
+    {
+        auto vsn = vselect.selectedVersion();
+        m_profile->setComponentVersion("net.fabricmc.fabric-loader", vsn->descriptor());
+        m_profile->resolve(Net::Mode::Online);
+        preselect(m_profile->rowCount(QModelIndex())-1);
+        m_container->refreshContainer();
+    }
+}
+
+void VersionPage::on_actionInstall_LegacyFabric_triggered()
+{
+    auto vlist = APPLICATION->metadataIndex()->get("net.fabricmc.fabric-loader");
+    if(!vlist)
+    {
+        return;
+    }
+    VersionSelectDialog vselect(vlist.get(), tr("Select Legacy Fabric Loader version"), this);
+    vselect.setEmptyString(tr("No Legacy Fabric Loader versions are currently available."));
+    vselect.setEmptyErrorString(tr("Couldn't load or download the Legacy Fabric Loader version lists!"));
 
     auto currentVersion = m_profile->getComponentVersion("net.fabricmc.fabric-loader");
     if(!currentVersion.isEmpty())

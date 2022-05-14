@@ -65,6 +65,7 @@ VanillaPage::VanillaPage(NewInstanceDialog *dialog, QWidget *parent)
     connect(ui->noneFilter, &QRadioButton::toggled, this, &VanillaPage::loaderFilterChanged);
     connect(ui->forgeFilter, &QRadioButton::toggled, this, &VanillaPage::loaderFilterChanged);
     connect(ui->fabricFilter, &QRadioButton::toggled, this, &VanillaPage::loaderFilterChanged);
+    connect(ui->legacyFabricFilter, &QRadioButton::toggled, this, &VanillaPage::loaderFilterChanged);
     connect(ui->quiltFilter, &QRadioButton::toggled, this, &VanillaPage::loaderFilterChanged);
     connect(ui->liteLoaderFilter, &QRadioButton::toggled, this, &VanillaPage::loaderFilterChanged);
     connect(ui->loaderRefreshBtn, &QPushButton::clicked, this, &VanillaPage::loaderRefresh);
@@ -143,6 +144,15 @@ void VanillaPage::loaderFilterChanged()
         m_selectedLoader = "net.minecraftforge";
     }
     else if(ui->fabricFilter->isChecked())
+    {
+        // FIXME: dirty hack because the launcher is unaware of Fabric's dependencies
+        if (Version(minecraftVersion) >= Version("1.14")) // Fabric/Quilt supported
+            ui->loaderVersionList->setExactFilter(BaseVersionList::ParentVersionRole, "");
+        else // Fabric/Quilt unsupported
+            ui->loaderVersionList->setExactFilter(BaseVersionList::ParentVersionRole, "AAA"); // clear list
+        m_selectedLoader = "net.fabricmc.fabric-loader";
+    }
+    else if(ui->legacyFabricFilter->isChecked())
     {
         // FIXME: dirty hack because the launcher is unaware of Fabric's dependencies
         if (Version(minecraftVersion) >= Version("1.14")) // Fabric/Quilt supported
